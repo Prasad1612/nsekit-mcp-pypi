@@ -1,0 +1,19 @@
+[project]
+name = "nsekit-mcp"
+version = "0.0.3"
+description = "FastMCP server for NSE India market data using NseKit"
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    "mcp[cli]>=1.22.0",
+    "nsekit>=0.0.7",
+    "typer>=0.20.0"
+]
+
+[project.scripts]
+nsekit-mcp = "nsekit_mcp.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

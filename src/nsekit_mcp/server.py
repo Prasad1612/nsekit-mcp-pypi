@@ -2,7 +2,7 @@ from mcp.server.fastmcp import FastMCP
 from NseKit import NseKit, Moneycontrol
 import pandas as pd
 import time                      
-from threading import Lock 
+from threading import Lock
 
 # ================================================================
 #                   RATE LIMIT CONTROL (NSE Safe)
@@ -193,7 +193,8 @@ def market_statistics():
     """
     TOOL: market_statistics
     DESCRIPTION:
-        Live capital market stats: advances, declines, unchanged, volume, value.
+        Live capital market stats: Count of Advances, Declines, Unchanged, 52W High, 52W Low, Upper Circuit, Lower Circuit, Market Cap ₹ Lac Crs,
+                                   Market Cap Tn $, Registered Investors (Raw), Registered Investors (Cr),
     RETURNS:
         JSON summary
     CATEGORY:
@@ -624,7 +625,7 @@ def index_history(index: str, period: str = None, from_date: str = None, to_date
     DESCRIPTION:
         Fetch historical OHLC + turnover for any index.
     PARAMETERS:
-        index: str – Name of the index
+        index: str – "NIFTY 50", "NIFTY BANK", etc. –Name of the index
         period: str – Shortcut period ("1D","1W","1M","3M","6M","1Y","2Y","5Y","10Y","YTD","MAX")
         from_date: str – Start date in DD-MM-YYYY (optional)
         to_date: str – End date in DD-MM-YYYY (optional)
@@ -639,69 +640,32 @@ def index_history(index: str, period: str = None, from_date: str = None, to_date
     """
     
     rate_limit()
-    return df_to_json(get.index_historical_data(index, period, from_date, to_date))
-
-
-# from datetime import datetime
-
-# @mcp.tool()
-# def index_history(index: str, period: str = None, from_date: str = None, to_date: str = None):
-#     """
-#     TOOL: index_history
-#     DESCRIPTION:
-#         Fetch historical OHLC + turnover for any index.
-#     PARAMETERS:
-#         index: str – Name of the index
-#         period: str – Shortcut period ("1D","1W","1M","3M","6M","1Y","2Y","5Y","10Y","YTD","MAX")
-#         from_date: str – Start date in DD-MM-YYYY (optional)
-#         to_date: str – End date in DD-MM-YYYY (optional)
-#     RETURNS:
-#         JSON with daily OHLC + turnover
-#     CATEGORY:
-#         Historical
-#     EXAMPLES:
-#         index_history("NIFTY 50", period="1Y")
-#         index_history("NIFTY 50", from_date="01-01-2025")
-#         index_history("NIFTY BANK", from_date="01-01-2025", to_date="17-10-2025")
-#     """
-#     rate_limit()
-    
-#     # Normalize empty strings to None
-#     period = period or None
-#     from_date = from_date or None
-#     to_date = to_date or None
-    
-#     # Validate MCP argument rules
-#     if period and (from_date or to_date):
-#         return {"error": "Invalid arguments. Use (index, period) OR (index, from_date) OR (index, from_date, to_date)."}
-#     if not period and not from_date:
-#         return {"error": "Either period or from_date must be provided."}
-    
-#     # Auto-set to_date if from_date provided but to_date is None
-#     if from_date and not to_date:
-#         to_date = datetime.now().strftime("%d-%m-%Y")
-    
-#     # Fetch data
-#     try:
-#         data = get.index_historical_data(index, period, from_date, to_date)
-#         return df_to_json(data)
-#     except Exception as e:
-#         return {"error": str(e)}
+    return df_to_json(get.index_historical_data(index=index, period=period, from_date=from_date, to_date=to_date))
 
 
 @mcp.tool()
-def stock_history(symbol: str, period: str = "1Y", from_date: str = None, to_date: str = None):
+def stock_history(symbol: str, period: str = None, from_date: str = None, to_date: str = None):
     """
     TOOL: stock_history
     DESCRIPTION:
-        Full historical price + delivery data.
+        Fetch historical price OHLC + turnover + delivery data for any stock.
+    PARAMETERS:
+        index: str – "TCS", "ITC", etc. –Name of the stock
+        period: str – Shortcut period ("1D","1W","1M","3M","6M","1Y","2Y","5Y","10Y","YTD","MAX")
+        from_date: str – Start date in DD-MM-YYYY (optional)
+        to_date: str – End date in DD-MM-YYYY (optional)
     RETURNS:
-        JSON OHLCV + delivery
+        JSON with daily OHLCV + turnover + delivery
     CATEGORY:
         Historical
+    EXAMPLES:
+        stock_history("TCS", period="1Y")
+        stock_history("TCS", from_date="01-01-2025")
+        stock_history("TCS", from_date="01-01-2025", to_date="17-10-2025")
     """
+
     rate_limit()
-    return df_to_json(get.cm_hist_security_wise_data(symbol, period or from_date, to_date))
+    return df_to_json(get.cm_hist_security_wise_data(symbol=symbol, period=period, from_date=from_date, to_date=to_date))
 
 
 # =====================================================================
@@ -809,42 +773,42 @@ def index_eod_bhav_copy(date: str):
 
 
 @mcp.tool()
-def index_pe_pb_div_historical_data(index_name: str, from_date: str = None, to_date: str = None):
+def index_pe_pb_div_historical_data(index: str, period: str = None, from_date: str = None, to_date: str = None):
     """
     TOOL: index_pe_pb_div_historical_data
     DESCRIPTION:
         Historical P/E, P/B, Dividend Yield for any index
     PARAMETERS:
-        index_name: str – "NIFTY 50", "NIFTY BANK" etc.
-        from_date: str – "DD-MM-YYYY" or shorthand "1Y", "6M", "YTD", "MAX"
-        to_date: str – optional end date
+        index: str – "NIFTY 50", "NIFTY BANK" etc.
+        period: str – Shortcut period ("1D","1W","1M","3M","6M","1Y","2Y","5Y","10Y","YTD","MAX")
+        from_date: str – Start date in DD-MM-YYYY (optional)
+        to_date: str – End date in DD-MM-YYYY (optional)
     RETURNS:
         Historical valuation data
     CATEGORY:
         Index_Historical
     """
     rate_limit()
-    # Original: get.index_pe_pb_div_historical_data("NIFTY 50", "01-01-2025", "17-10-2025")
-    return df_to_json(get.index_pe_pb_div_historical_data(index_name, from_date, to_date))
+    return df_to_json(get.index_pe_pb_div_historical_data(index=index, period=period, from_date=from_date, to_date=to_date))
 
 
 @mcp.tool()
-def india_vix_historical_data(from_date: str = None, to_date: str = None):
+def india_vix_historical_data(period: str = None, from_date: str = None, to_date: str = None):
     """
     TOOL: india_vix_historical_data
     DESCRIPTION:
         Historical India VIX data
     PARAMETERS:
-        from_date: str – "DD-MM-YYYY" or "6M", "1Y", "MAX" etc.
-        to_date: str – optional
+        period: str – Shortcut period ("1D","1W","1M","3M","6M","1Y","2Y","5Y","10Y","YTD","MAX")
+        from_date: str – Start date in DD-MM-YYYY (optional)
+        to_date: str – End date in DD-MM-YYYY (optional)
     RETURNS:
         India VIX time series
     CATEGORY:
-        Index_Historical
+        India_VIX_Historical
     """
     rate_limit()
-    # Original: get.india_vix_historical_data("01-08-2025", "17-10-2025")
-    return df_to_json(get.india_vix_historical_data(from_date, to_date))
+    return df_to_json(get.india_vix_historical_data(period=period, from_date=from_date, to_date=to_date))
 
 
 # =====================================================================
@@ -987,7 +951,10 @@ def cm_live_hist_preferential_issue(stage: str = None, period_or_symbol: str = N
     DESCRIPTION:
         Preferential issue data
     PARAMETERS:
-        Same as QIP
+        stage: str – "In-Principle" or "Listing Stage"
+        period_or_symbol: str – "1Y", "RELIANCE" etc.
+        from_date: str – optional
+        to_date: str – optional
     RETURNS:
         Preferential issues
     CATEGORY:
@@ -1004,7 +971,10 @@ def cm_live_hist_right_issue(stage: str = None, period_or_symbol: str = None, fr
     DESCRIPTION:
         Rights issue data
     PARAMETERS:
-        Same structure as above
+        stage: str – "In-Principle" or "Listing Stage"
+        period_or_symbol: str – "1Y", "RELIANCE" etc.
+        from_date: str – optional
+        to_date: str – optional
     RETURNS:
         Rights issues
     CATEGORY:
@@ -1204,7 +1174,7 @@ def fno_live_active_contracts(symbol: str = "NIFTY", expiry_date: str = None):
 # =====================================================================
 
 @mcp.tool()
-def fii_dii_activity(exchange: str):
+def fii_dii_activity(exchange: str = None):
     """
     TOOL: fii_dii_activity
     DESCRIPTION:
@@ -1447,8 +1417,8 @@ def equity_price_bands_historical(symbol: str = None, period: str = None, from_d
     PARAMETERS:
         symbol: str – Optional stock symbol
         period: str – "1D", "1W", "1M", "3M", "6M", "1Y"
-        from_date: str – "DD-MM-YYYY"
-        to_date: str – "DD-MM-YYYY"
+        from_date: str – "DD-MM-YYYY"   (optional)
+        to_date: str – "DD-MM-YYYY"   (optional)
     RETURNS:
         Price band history
     CATEGORY:
@@ -1461,7 +1431,7 @@ def equity_price_bands_historical(symbol: str = None, period: str = None, from_d
     # get.cm_hist_eq_price_band("01-10-2025")
     # get.cm_hist_eq_price_band("15-10-2025", "17-10-2025")
     # get.cm_hist_eq_price_band("WEWIN")
-    return df_to_json(get.cm_hist_eq_price_band(symbol, period or from_date, to_date))
+    return df_to_json(get.cm_hist_eq_price_band(symbol=symbol, period=period, from_date=from_date, to_date=to_date))
 
 
 @mcp.tool()
@@ -1542,8 +1512,8 @@ def historical_bulk_deals(symbol: str = None, period: str = None, from_date: str
         Bulk deals history – by symbol, date range or period.
     PARAMETERS:
         symbol: str – Optional
-        period: str – "1W", "1M", "1Y" etc.
-        from_date/to_date: str – "DD-MM-YYYY"
+        period: str – "1D", "1W", "1M", "3M", "6M", "1Y".
+        from_date/to_date: str – "DD-MM-YYYY"   Optional
     RETURNS:
         Bulk deals history
     CATEGORY:
@@ -1551,7 +1521,7 @@ def historical_bulk_deals(symbol: str = None, period: str = None, from_date: str
     """
     rate_limit()
     # Original: get.cm_hist_bulk_deals(...) variants
-    return df_to_json(get.cm_hist_bulk_deals(symbol, period or from_date, to_date))
+    return df_to_json(get.cm_hist_bulk_deals(symbol=symbol, period=period, from_date=from_date, to_date=to_date))
 
 
 @mcp.tool()
@@ -1562,15 +1532,15 @@ def historical_block_deals(symbol: str = None, period: str = None, from_date: st
         Block deals history – by symbol or date range.
     PARAMETERS:
         symbol: str – Optional
-        period: str – "1W", "1M", "3M", "1Y"
-        from_date/to_date: str – "DD-MM-YYYY"
+        period: str – "1D", "1W", "1M", "3M", "6M", "1Y".
+        from_date/to_date: str – "DD-MM-YYYY"   Optional
     RETURNS:
         Block deals history
     CATEGORY:
         Equity_Historical
     """
     rate_limit()
-    return df_to_json(get.cm_hist_block_deals(symbol, period or from_date, to_date))
+    return df_to_json(get.cm_hist_block_deals(symbol=symbol, period=period, from_date=from_date, to_date=to_date))
 
 
 @mcp.tool()
@@ -1581,8 +1551,8 @@ def historical_short_selling(symbol: str = None, period: str = None, from_date: 
         Historical short selling disclosures.
     PARAMETERS:
         symbol: str – Optional
-        period: str – "1W", "1M", "1Y"
-        from_date/to_date: str – "DD-MM-YYYY"
+        period: str – "1D", "1W", "1M", "3M", "6M", "1Y".
+        from_date/to_date: str – "DD-MM-YYYY"   Optional
     RETURNS:
         Short selling data
     CATEGORY:

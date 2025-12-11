@@ -1199,37 +1199,15 @@ def market_activity_report(date: str):
     DESCRIPTION:
         Daily market turnover, advances/declines, top gainers/losers.
     PARAMETERS:
-        date: str – Trade date in "DD-MM-YYYY"
+        date: str – Trade date in "DD-MM-YY"
     RETURNS:
         Full market activity report
     CATEGORY:
         Equity_EOD
     """
     rate_limit()
-    # Original: get.cm_eod_market_activity_report("17-10-2025")
+    # Original: get.cm_eod_market_activity_report("17-10-25")
     return df_to_json(get.cm_eod_market_activity_report(date))
-
-# @mcp.tool()
-# def market_activity_report(date: str):
-#     """
-#     TOOL: market_activity_report
-#     DESCRIPTION:
-#         Daily market turnover, advances/declines, top gainers/losers.
-#     PARAMETERS:
-#         date: str – Trade date in "DD-MM-YYYY"
-#     RETURNS:
-#         Full market activity report
-#     CATEGORY:
-#         Equity_EOD
-#     """
-#     rate_limit()
-
-#     date_obj = datetime.strptime(date, "%d-%m-%Y").date()
-
-#     data = get.cm_eod_market_activity_report(date_obj)
-
-#     return (data)
-
 
 @mcp.tool()
 def bhavcopy_with_delivery(date: str):
@@ -1583,14 +1561,15 @@ def business_growth(mode: str = "daily", month: str = None, year: int = None):
 
 
 @mcp.tool()
-def monthly_settlement_report(period: str = None, start_year: int = None, end_year: int = None):
+def monthly_settlement_report(period: str = None, from_year: int = None, to_year: int = None):
     """
     TOOL: monthly_settlement_report
     DESCRIPTION:
-        Monthly settlement statistics (cash segment).
+        Fetch NSE Monthly Settlement Statistics (Cash Market) for multiple financial years (Apr–Mar),
+        including past financial years and current FY up to the latest available month.
     PARAMETERS:
         period: str – "1Y", "3Y" or None (current FY)
-        start_year/end_year: int – e.g., 2024, 2026
+        from_year/to_year: int – e.g., 2024, 2026
     RETURNS:
         Settlement stats
     CATEGORY:
@@ -1598,7 +1577,7 @@ def monthly_settlement_report(period: str = None, start_year: int = None, end_ye
     """
     rate_limit()
     # Original: get.cm_monthly_settlement_report(...)
-    return df_to_json(get.cm_monthly_settlement_report(period or start_year, end_year))
+    return df_to_json(get.cm_monthly_settlement_report(period=period, from_year=from_year, to_year=to_year))
 
 
 @mcp.tool()
@@ -1874,7 +1853,8 @@ def fno_business_growth(mode: str = "monthly", month: str = None, year: int = No
         F&O segment daily/monthly/yearly turnover growth.
     PARAMETERS:
         mode: str – "daily", "monthly", "yearly"
-        month/year: str/int
+        month: str – "OCT", "JAN" etc.
+        year: int – e.g., 2025
     RETURNS:
         F&O growth data
     CATEGORY:
@@ -1886,14 +1866,14 @@ def fno_business_growth(mode: str = "monthly", month: str = None, year: int = No
 
 
 @mcp.tool()
-def fno_settlement_report(period: str = None, start_year: int = None, end_year: int = None):
+def fno_settlement_report(period: str = None, from_year: str = None, to_year: str = None):
     """
     TOOL: fno_settlement_report
     DESCRIPTION:
-        F&O monthly settlement statistics by FY.
+        NSE Monthly Settlement Statistics (F&O) for given financial years or period.
     PARAMETERS:
-        period: str – "2Y", "3Y"
-        start_year/end_year: int
+        period: str – "1Y", "3Y" or None (current FY)
+        from_year/to_year: int – e.g., 2024, 2026   (optional)
     RETURNS:
         F&O settlement data
     CATEGORY:
@@ -1901,7 +1881,7 @@ def fno_settlement_report(period: str = None, start_year: int = None, end_year: 
     """
     rate_limit()
     # Original: get.fno_monthly_settlement_report(...)
-    return df_to_json(get.fno_monthly_settlement_report(period or start_year, end_year))
+    return df_to_json(get.fno_monthly_settlement_report(period=period, from_year=from_year, to_year=to_year))
 
 
 # =====================================================================
